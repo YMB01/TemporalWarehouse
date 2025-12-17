@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { TextField, Button, Box, Alert } from '@mui/material';
+import { TextField, Button, Box, Alert, Paper, Typography, Grid } from '@mui/material';
+import SaveIcon from '@mui/icons-material/Save';
+import CancelIcon from '@mui/icons-material/Cancel';
 import { Product } from '../types';
 import { createProduct, updateProduct } from '../api/productApi';
 
@@ -20,17 +22,17 @@ const ProductForm: React.FC<Props> = ({ initialData, onSave, onCancel }) => {
         currentQuantity: undefined,
     });
 
-    // ✅ Sync formData when initialData loads or changes
+    // Sync formData when initialData loads or changes
     useEffect(() => {
         if (initialData) {
             setFormData({
                 name: initialData.name,
                 sku: initialData.sku,
                 price: initialData.price,
-                currentQuantity: initialData.currentQuantity, // or omit if not editable
+                currentQuantity: initialData.currentQuantity,
             });
         }
-    }, [initialData]); // Re-run when initialData changes
+    }, [initialData]);
 
     const [error, setError] = useState<string | null>(null);
 
@@ -56,68 +58,93 @@ const ProductForm: React.FC<Props> = ({ initialData, onSave, onCancel }) => {
         }
     };
 
-    // Optional: prevent editing currentQuantity on edit (per your spec)
+    // Prevent editing currentQuantity on edit
     const isQuantityEditable = !isEditing;
 
     return (
-        <Box sx={{ maxWidth: 600, mx: 'auto', p: 3 }}>
-            <h2>{isEditing ? 'Edit Product' : 'Add New Product'}</h2>
-            {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+        <Paper elevation={0} sx={{ maxWidth: 700, mx: 'auto', p: 4, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
+            <Typography variant="h5" component="h2" fontWeight={600} gutterBottom sx={{ mb: 3 }}>
+                {isEditing ? 'Edit Product' : 'Create New Product'}
+            </Typography>
 
-            <TextField
-                label="Name"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                fullWidth
-                margin="dense"
-            />
-            <TextField
-                label="SKU"
-                name="sku"
-                value={formData.sku}
-                onChange={handleChange}
-                fullWidth
-                margin="dense"
-            />
-            <TextField
-                label="Price"
-                name="price"
-                type="number"
-                value={formData.price}
-                onChange={handleChange}
-                fullWidth
-                margin="dense"
-                inputProps={{ min: 0, step: 0.01 }}
-            />
+            {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
 
-            {isQuantityEditable && (
-                <TextField
-                    label="Initial Quantity"
-                    name="currentQuantity"
-                    type="number"
-                    value={formData.currentQuantity || ''}
-                    onChange={(e) =>
-                        setFormData({
-                            ...formData,
-                            currentQuantity: e.target.value ? parseInt(e.target.value, 10) : undefined,
-                        })
-                    }
-                    fullWidth
-                    margin="dense"
-                    inputProps={{ min: 0 }}
-                />
-            )}
+            <Grid container spacing={2}>
+                <Grid size={{ xs: 12 }}>
+                    <TextField
+                        label="Product Name"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleChange}
+                        fullWidth
+                        variant="outlined"
+                    />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                    <TextField
+                        label="SKU"
+                        name="sku"
+                        value={formData.sku}
+                        onChange={handleChange}
+                        fullWidth
+                        variant="outlined"
+                    />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                    <TextField
+                        label="Price"
+                        name="price"
+                        type="number"
+                        value={formData.price}
+                        onChange={handleChange}
+                        fullWidth
+                        variant="outlined"
+                        InputProps={{ startAdornment: <Box component="span" sx={{ mr: 1 }}>$</Box> }}
+                    />
+                </Grid>
 
-            <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
-                <Button variant="contained" color="primary" onClick={handleSubmit}>
-                    {isEditing ? 'Update' : 'Create'}
-                </Button>
-                <Button variant="outlined" onClick={onCancel}>
+                {isQuantityEditable && (
+                    <Grid size={{ xs: 12 }}>
+                        <TextField
+                            label="Initial Quantity"
+                            name="currentQuantity"
+                            type="number"
+                            value={formData.currentQuantity || ''}
+                            onChange={(e) =>
+                                setFormData({
+                                    ...formData,
+                                    currentQuantity: e.target.value ? parseInt(e.target.value, 10) : undefined,
+                                })
+                            }
+                            fullWidth
+                            variant="outlined"
+                            InputProps={{ inputProps: { min: 0 } }}
+                            helperText="Set the starting stock level for this new product"
+                        />
+                    </Grid>
+                )}
+            </Grid>
+
+            <Box sx={{ mt: 4, display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+                <Button
+                    variant="outlined"
+                    onClick={onCancel}
+                    startIcon={<CancelIcon />}
+                    size="large"
+                >
                     Cancel
                 </Button>
+                <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={handleSubmit}
+                    startIcon={<SaveIcon />}
+                    size="large"
+                >
+                    {isEditing ? 'Update Product' : 'Create Product'}
+                </Button>
             </Box>
-        </Box>
+        </Paper>
     );
 };
 

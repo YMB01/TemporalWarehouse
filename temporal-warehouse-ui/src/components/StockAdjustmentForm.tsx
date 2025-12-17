@@ -1,83 +1,115 @@
 // src/components/StockAdjustmentForm.tsx
 import React, { useState } from 'react';
-import { Button, TextField, Box, Alert, AlertTitle } from '@mui/material';
+import {
+    Button,
+    TextField,
+    Box,
+    Alert,
+    AlertTitle,
+    Paper,
+    Typography,
+    Tabs,
+    Tab,
+    Fade
+} from '@mui/material';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 import { addStock, removeStock } from '../api/productApi';
 
 interface Props {
     productId: number;
-    onStockChange: () => void; // To refresh product data
+    onStockChange: () => void;
 }
 
 const StockAdjustmentForm: React.FC<Props> = ({ productId, onStockChange }) => {
-    const [addQty, setAddQty] = useState<string>('');
-    const [removeQty, setRemoveQty] = useState<string>('');
+    const [tabValue, setTabValue] = useState(0);
+    const [quantity, setQuantity] = useState<string>('');
     const [error, setError] = useState<string | null>(null);
+    const [success, setSuccess] = useState<string | null>(null);
 
-    const handleAdd = async () => {
-        const qty = parseInt(addQty, 10);
-        if (isNaN(qty) || qty <= 0) return;
-        try {
-            await addStock(productId, qty);
-            onStockChange();
-            setAddQty('');
-            setError(null);
-        } catch (err: any) {
-            setError(err.response?.status === 409
-                ? 'Concurrent modification. Refresh and retry.'
-                : 'Failed to add stock.');
-        }
+    const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+        setTabValue(newValue);
+        setQuantity('');
+        setError(null);
+        setSuccess(null);
     };
 
-    const handleRemove = async () => {
-        const qty = parseInt(removeQty, 10);
-        if (isNaN(qty) || qty <= 0) return;
+    const handleSubmit = async () => {
+        const qty = parseInt(quantity, 10);
+        if (isNaN(qty) || qty <= 0) {
+            setError('Please enter a valid positive quantity.');
+            return;
+        }
+
         try {
-            await removeStock(productId, qty);
+            if (tabValue === 0) {
+                await addStock(productId, qty);
+                setSuccess(`Successfully added ${qty} items.`);
+            } else {
+                await removeStock(productId, qty);
+                setSuccess(`Successfully removed ${qty} items.`);
+            }
             onStockChange();
-            setRemoveQty('');
+            setQuantity('');
             setError(null);
+            setTimeout(() => setSuccess(null), 3000);
         } catch (err: any) {
             setError(err.response?.status === 409
-                ? 'Concurrent modification. Refresh and retry.'
-                : 'Insufficient stock or failed operation.');
+                ? 'Concurrent modification detected. Please refresh and try again.'
+                : tabValue === 0 ? 'Failed to add stock.' : 'Insufficient stock or failed operation.');
+            setSuccess(null);
         }
     };
 
     return (
-        <Box sx={{ mt: 2, p: 2, border: '1px solid', borderColor: 'divider', borderRadius: 2 }}>
-            {error && (
-                <Alert severity="error" sx={{ mb: 2 }}>
-                    <AlertTitle>Operation Failed</AlertTitle>
-                    {error}
-                </Alert>
-            )}
-            <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+        <Paper elevation={0} sx={{ p: 3, borderRadius: 3, border: '1px solid', borderColor: 'divider' }}>
+            <Typography variant="h6" gutterBottom fontWeight={600}>
+                Manage Stock
+            </Typography>
+
+            <Tabs
+                value={tabValue}
+                onChange={handleTabChange}
+                aria-label="stock adjustment tabs"
+                variant="fullWidth"
+                sx={{ mb: 3, borderBottom: 1, borderColor: 'divider' }}
+            >
+                <Tab icon={<AddCircleOutlineIcon />} iconPosition="start" label="Add Stock"
+                    sx={{ minHeight: 60, textTransform: 'none', fontWeight: 600 }} />
+                <Tab icon={<RemoveCircleOutlineIcon />} iconPosition="start" label="Remove Stock"
+                    sx={{ minHeight: 60, textTransform: 'none', fontWeight: 600 }} />
+            </Tabs>
+
+            <Fade in={!!error || !!success}>
+                <Box sx={{ mb: 2 }}>
+                    {error && <Alert severity="error" onClose={() => setError(null)}>{error}</Alert>}
+                    {success && <Alert severity="success" onClose={() => setSuccess(null)}>{success}</Alert>}
+                </Box>
+            </Fade>
+
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <TextField
-                    label="Add Quantity"
+                    label={tabValue === 0 ? "Quantity to Add" : "Quantity to Remove"}
                     type="number"
-                    value={addQty}
-                    onChange={(e) => setAddQty(e.target.value)}
-                    size="small"
-                    inputProps={{ min: 1 }}
+                    value={quantity}
+                    onChange={(e) => setQuantity(e.target.value)}
+                    fullWidth
+                    InputProps={{ inputProps: { min: 1 } }}
+                    placeholder="Enter amount..."
                 />
-                <Button variant="contained" color="success" onClick={handleAdd}>
-                    Add Stock
+
+                <Button
+                    variant="contained"
+                    color={tabValue === 0 ? "primary" : "error"}
+                    size="large"
+                    onClick={handleSubmit}
+                    sx={{ py: 1.5, fontWeight: 600 }}
+                    disableElevation
+                >
+                    {tabValue === 0 ? "Add to Inventory" : "Remove from Inventory"}
                 </Button>
             </Box>
-            <Box sx={{ display: 'flex', gap: 2 }}>
-                <TextField
-                    label="Remove Quantity"
-                    type="number"
-                    value={removeQty}
-                    onChange={(e) => setRemoveQty(e.target.value)}
-                    size="small"
-                    inputProps={{ min: 1 }}
-                />
-                <Button variant="contained" color="error" onClick={handleRemove}>
-                    Remove Stock
-                </Button>
-            </Box>
-        </Box>
+        </Paper>
     );
 };
 
