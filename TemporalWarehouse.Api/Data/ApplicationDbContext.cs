@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Reflection.Emit;
+using TemporalWarehouse.Api.Models;
 using YourProjectNamespace.Models;
 
 namespace YourProjectNamespace.Data;
@@ -12,7 +13,8 @@ public class ApplicationDbContext : DbContext
 
     public DbSet<Product> Products => Set<Product>();
     public DbSet<StockHistory> StockHistories => Set<StockHistory>();
-  
+    public DbSet<User> Users { get; set; }
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

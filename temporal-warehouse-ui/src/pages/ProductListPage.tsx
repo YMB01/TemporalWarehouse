@@ -24,6 +24,7 @@ const ProductListPage: React.FC = () => {
     const navigate = useNavigate();
     const theme = useTheme();
 
+
     useEffect(() => {
         fetchProducts().then(res => {
             setProducts(res.data);

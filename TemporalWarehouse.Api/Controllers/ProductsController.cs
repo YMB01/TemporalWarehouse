@@ -1,4 +1,5 @@
 ﻿// Controllers/ProductsController.cs
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using YourProjectNamespace.Data;
@@ -8,6 +9,7 @@ namespace TemporalWarehouse.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class ProductsController : ControllerBase
 {
     private readonly ApplicationDbContext _context;

@@ -106,6 +106,8 @@ const ProductDetailPage: React.FC = () => {
                                 <Typography variant="body2" color="text.secondary">Unit Price</Typography>
                             </Paper>
                         </Grid>
+                        <br />
+                        <br />
 
                         <Grid size={{ xs: 12 }}>
                             <Paper sx={{ p: 3 }}>

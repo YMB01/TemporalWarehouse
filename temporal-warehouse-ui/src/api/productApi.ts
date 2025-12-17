@@ -2,9 +2,20 @@
 import axios from 'axios';
 import { Product } from '../types';
 
-
+// Create an Axios instance with base configuration
 const api = axios.create({
-    baseURL: 'http://localhost:5075/api', // Adjust if needed
+    baseURL: 'http://localhost:5075/api',
+});
+
+// Request interceptor to attach JWT token if present
+api.interceptors.request.use((config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+}, (error) => {
+    return Promise.reject(error);
 });
 
 // Products
@@ -24,6 +35,5 @@ export const removeStock = (productId: number, quantity: number) =>
 // Historical
 export const getHistoricalStock = (productId: number, at: string) =>
     api.get<number>('/Historical/stock', { params: { productId, at } });
-
 
 export type { Product };
